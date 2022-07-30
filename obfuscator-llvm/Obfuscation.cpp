@@ -2,16 +2,19 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Passes/PassBuilder.h"
+#include "RenameFnsPass.h"
+#include "SplitBasicBlocks.h"
 #include "Substitution.h"
 #include "Flattening.h"
-#include "SplitBasicBlocks.h"
 #include "BogusControlFlow.h"
+#include "BB2Func.h"
+#include "StringObfuscator.h"
 
 using namespace llvm;
 
 // Flags for obfuscation
 static cl::opt<std::string> AesSeed("aesSeed", cl::init(""), cl::desc("seed for the AES-CTR PRNG"));
-
+/*
 static void loadPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
   // Initialization of the global cryptographically
   // secure pseudo-random generator
@@ -37,10 +40,17 @@ static RegisterStandardPasses clangtoolLoader_O0(PassManagerBuilder::EP_EnabledO
 // you're in -O0, and EP_OptimizerLast only runs if you're not). You can check
 // include/llvm/Transforms/IPO/PassManagerBuilder.h header and
 // lib/Transforms/IPO/PassManagerBuilder.cpp file for the exact behavior.
-
+*/
+namespace{
+  struct MainState{
+    bool isCringe = false;
+  };
+  MainState st;
+};
+bool &_g_isCringe(){return st.isCringe;};
 PassPluginLibraryInfo getObfuscatorLLVMPluginInfo(){
   return {LLVM_PLUGIN_API_VERSION, "ObfuscatorLLVM", LLVM_VERSION_STRING, [](PassBuilder &PB){
-    PB.registerVectorizerStartEPCallback([](FunctionPassManager &PM, PassBuilder::OptimizationLevel level){
+    PB.registerVectorizerStartEPCallback([](FunctionPassManager &PM, OptimizationLevel level){
       if(!AesSeed.empty()) {
         if(!llvm::cryptoutils->prng_seed(AesSeed.c_str())) {
           exit(1);
@@ -50,7 +60,18 @@ PassPluginLibraryInfo getObfuscatorLLVMPluginInfo(){
       PM.addPass(BogusControlFlowPass());
       PM.addPass(FlatteningPass());
       PM.addPass(SubstitutionPass());
+      PM.addPass(BB2Func());
+      PM.addPass(BogusControlFlowPass(1));
+      PM.addPass(llvm::RenameFnsPass());
     });
+    	PB.registerPipelineParsingCallback([](StringRef Name, ModulePassManager &MPM,
+        ArrayRef<PassBuilder::PipelineElement>) {
+          					if(Name == "string-obfuscator-pass"){
+						MPM.addPass(StringObfuscatorModPass(st.isCringe));
+						return true;
+					}
+					return false;
+        });
   }};
 }
 

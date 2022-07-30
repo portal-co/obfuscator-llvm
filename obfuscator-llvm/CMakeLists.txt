@@ -9,6 +9,8 @@ if (LLVM_ENABLE_NEW_PASS_MANAGER)
         SplitBasicBlocks.cpp
         Flattening.cpp
         Utils.cpp
+        RenameFnsPass.cpp
+        BB2Func.cpp
     )
     target_link_libraries(ObfuscatorLLVM
         PUBLIC

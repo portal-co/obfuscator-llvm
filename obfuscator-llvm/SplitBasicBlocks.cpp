@@ -57,6 +57,7 @@ PreservedAnalyses SplitBasicBlockPass::run(Function &F, FunctionAnalysisManager 
 
 bool SplitBasicBlock::runOnFunction(Function &F) {
   Function *tmp = &F;
+  
 
   // Check if the number of applications is correct
   auto nums = readAnnotate(tmp, SplitNum.ArgStr);

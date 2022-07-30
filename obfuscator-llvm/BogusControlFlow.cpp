@@ -134,6 +134,7 @@ namespace {
 struct BogusControlFlow : public FunctionPass {
   static char ID; // Pass identification
   BogusControlFlow() : FunctionPass(ID) {}
+  int stage;
 
   /* runOnFunction
    *
@@ -166,7 +167,7 @@ struct BogusControlFlow : public FunctionPass {
       return false;
     }
     // If fla annotations
-    if (toObfuscate(BogusControlFlowFlag, &F, "bcf")) {
+    if (toObfuscate(BogusControlFlowFlag, &F, std::string("bcf") + (stage == 0 ? "" : "_post"))) {
       bogus(F);
       doF(*F.getParent());
       return true;
@@ -693,6 +694,7 @@ Pass *llvm::createBogus() { return new BogusControlFlow(); }
 
 PreservedAnalyses BogusControlFlowPass::run(Function& F, FunctionAnalysisManager& AM) {
   BogusControlFlow bcf;
+  bcf.stage = x;
   if (bcf.runOnFunction(F))
     return PreservedAnalyses::none();
   return PreservedAnalyses::all();

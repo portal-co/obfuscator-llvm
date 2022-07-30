@@ -41,6 +41,7 @@ public:
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
 
   static bool isRequired() { return true; }
+  int x;inline BogusControlFlowPass(int y = 0): x(y){}
 };
 } // namespace llvm
 

@@ -2,5 +2,5 @@
 
 mkdir -p build
 cd build
-cmake ../
+cmake -GNinja ../
 cmake --build .

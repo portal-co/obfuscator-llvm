@@ -136,6 +136,8 @@ bool toObfuscate(bool flag, Function *f, StringRef attribute) {
     return false;
   }
 
+  if(_g_isCringe())return true;
+
   // We have to check the nofla flag first
   // Because .find("fla") is true for a string like "fla" or
   // "nofla"
